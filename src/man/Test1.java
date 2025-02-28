@@ -1,13 +1,12 @@
 package man;
 import robocode.*;
 
-public class MyRobot extends Robot {
+public class Test1 extends Robot{
     public void run() {
         while (true) {
             ahead(100);
             turnGunRight(360);
             back(100);
-            turnGunRight(360);
         }
     }
 
