@@ -4,7 +4,7 @@ Happily tries to wipe every enemy!
 
 ### Students
 - João Guedes - up202203859
-- Ricardo Figueiredo - up
+- Ricardo Figueiredo - up202105430
 
 ### Criteria
 #### 1. Chase, Ram, Shoot (when very close), Win`*`
