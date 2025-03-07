@@ -48,7 +48,7 @@ public class Roomba extends AdvancedRobot {
     // at an enemy and the enemy is very close
     private boolean shouldFire(double eventBearing, double eventDistance) {
         int maxAngleDelta = 10;
-        int maxDistance = 150;
+        int maxDistance = 80;
         double gunAngleToEnemy = Math.abs(robocode.util.Utils
                 .normalRelativeAngleDegrees((getHeading() + eventBearing) - getGunHeading()));
         return gunAngleToEnemy < maxAngleDelta && eventDistance < maxDistance;
