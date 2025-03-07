@@ -31,7 +31,7 @@ public class Roomba extends AdvancedRobot {
         }
 
         // go to enemy
-        setAhead(50);
+        setAhead(500);
 
         if (shouldFire(e.getBearing(), e.getDistance()))
             setFire(Rules.MAX_BULLET_POWER);
@@ -47,8 +47,11 @@ public class Roomba extends AdvancedRobot {
     // called when roomba collides with enemy
     public void onHitRobot(HitRobotEvent e) {
         lastEnemyCollisionTime = getTime();
-        if (shouldFire(e.getBearing(), 0))
-            fire(Rules.MAX_BULLET_POWER);
+        if (shouldFire(e.getBearing(), 0)){
+            setAhead(500);
+            setFire(Rules.MAX_BULLET_POWER);
+            execute();
+        }
     }
 
     // roomba should only fire if the gun is pointing
