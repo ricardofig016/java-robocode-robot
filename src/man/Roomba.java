@@ -71,4 +71,16 @@ public class Roomba extends AdvancedRobot {
         return gunAngleToEnemy < maxAngleDelta && eventDistance < maxDistance;
     }
 
+    // roomba dance upon winning
+    // just wiggles left and right
+    public void onWin(WinEvent e) {
+        for (int i = 0; i < 50; i++) {
+            ahead(0);
+            turnRight(30);
+            turnLeft(30);
+        }
+    }
+
+
+
 }
