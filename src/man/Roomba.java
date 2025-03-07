@@ -2,11 +2,27 @@ package man;
 
 import robocode.*;
 
+import java.awt.*;
+
+/**
+ * Roomba! - Happily tries to wipe every enemy.
+ * <p>
+ * Drives at robots trying to ram them.
+ * Fires when very close to the enemy.
+ * Dances upon winning.
+ *
+ * @author João Guedes - up202203859
+ * @author Ricardo Figueiredo - up202105430
+ */
 public class Roomba extends AdvancedRobot {
     private int radarTurnDirection = 1; // 1 = right, -1 = left
     private long lastEnemyCollisionTime = 0; // time since last collision with enemy
 
     public void run() {
+        setBodyColor(Color.black);
+        setGunColor(Color.green);
+        setRadarColor(Color.red);
+        setBulletColor(Color.green);
         while (true) {
             turnRadarRight(360);
         }
