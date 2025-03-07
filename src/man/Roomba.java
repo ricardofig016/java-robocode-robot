@@ -2,11 +2,17 @@ package man;
 
 import robocode.*;
 
+import java.awt.*;
+
 public class Roomba extends AdvancedRobot {
     private int radarTurnDirection = 1; // 1 = right, -1 = left
     private long lastEnemyCollisionTime = 0; // time since last collision with enemy
 
     public void run() {
+        setBodyColor(Color.black);
+        setGunColor(Color.green);
+        setRadarColor(Color.black);
+        setBulletColor(Color.green);
         while (true) {
             turnRadarRight(360);
         }
