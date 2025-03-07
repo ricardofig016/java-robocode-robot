@@ -23,7 +23,7 @@ public class Roomba extends AdvancedRobot {
         setGunColor(Color.green);
         setRadarColor(Color.red);
         setBulletColor(Color.green);
-        setScanColor(Color.WHITE);
+
         while (true) {
             turnRadarRight(360);
         }
