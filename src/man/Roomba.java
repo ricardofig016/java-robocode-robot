@@ -7,7 +7,7 @@ import java.awt.*;
  * Roomba! - Happily wipes every enemy.
  * <p>
  * This robot continuously scans for opponents, locks onto targets, and fires at
- * maximum power when it is sure it will hit.
+ * maximum power when it is certain it will hit.
  * Upon winning a round, it performs a celebratory dance.
  * </p>
  *
@@ -27,6 +27,16 @@ public class Roomba extends AdvancedRobot {
     private long lastEnemyCollisionTime = 0;
 
     /**
+     * Timeout before switching to zigzag mode.
+     */
+    private static final long COLLISION_TIMEOUT = 3000; // 3 seconds
+
+    /**
+     * Whether the robot is in zigzag mode.
+     */
+    private boolean zigzagMode = false;
+
+    /**
      * Main execution loop.
      * <p>
      * Sets the robot's colors and continuously rotates the radar 360 degrees
@@ -40,7 +50,15 @@ public class Roomba extends AdvancedRobot {
         setRadarColor(Color.red);
         setBulletColor(Color.green);
 
+        lastEnemyCollisionTime = System.currentTimeMillis();
+
         while (true) {
+            long timeSinceLastCollision = System.currentTimeMillis() - lastEnemyCollisionTime;
+
+            if (timeSinceLastCollision > COLLISION_TIMEOUT && !zigzagMode) {
+                startZigzagMode();
+            }
+
             turnRadarRight(360);
         }
     }
@@ -83,6 +101,17 @@ public class Roomba extends AdvancedRobot {
     }
 
     /**
+     * Called when the robot collides with another robot.
+     * Updates the last collision time.
+     *
+     * @param e The collision event.
+     */
+    public void onHitRobot(HitRobotEvent e) {
+        lastEnemyCollisionTime = System.currentTimeMillis();
+        zigzagMode = false; // Reset zigzag mode on collision
+    }
+
+    /**
      * Determines whether the robot should fire based on the enemy's position.
      * <p>
      * The robot checks if the gun is well-aligned with the enemy and if the enemy
@@ -95,10 +124,28 @@ public class Roomba extends AdvancedRobot {
      */
     private boolean shouldFire(double eventBearing, double eventDistance) {
         int maxAngleDelta = 10;
-        int maxDistance = 100;
+        int maxDistance = 80;
         double gunAngleToEnemy = Math.abs(robocode.util.Utils
                 .normalRelativeAngleDegrees((getHeading() + eventBearing) - getGunHeading()));
         return gunAngleToEnemy < maxAngleDelta && eventDistance < maxDistance;
+    }
+
+    /**
+     * Starts the zigzag movement and fires with power 1.2.
+     */
+    private void startZigzagMode() {
+        zigzagMode = true;
+
+        while (zigzagMode) {
+            setTurnRight(45);
+            setAhead(100);
+            execute();
+            setTurnLeft(45);
+            setAhead(100);
+            execute();
+
+            setFire(1.2);
+        }
     }
 
     /**
