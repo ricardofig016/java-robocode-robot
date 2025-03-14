@@ -15,9 +15,21 @@ import java.awt.*;
  * @author Ricardo Figueiredo - up202105430
  */
 public class Roomba extends AdvancedRobot {
-    private int radarTurnDirection = 1; // 1 = right, -1 = left
-    private long lastEnemyCollisionTime = 0; // time since last collision with enemy
+    /**
+     * Direction in which the radar is turning.
+     * 1 = right, -1 = left.
+     */
+    private int radarTurnDirection = 1;
 
+    /**
+     * Time since the last collision with an enemy.
+     */
+    private long lastEnemyCollisionTime = 0;
+
+    /**
+     * Main loop of the robot.
+     * Sets the colors and continuously scans for enemies.
+     */
     public void run() {
         setBodyColor(Color.black);
         setGunColor(Color.green);
@@ -29,14 +41,19 @@ public class Roomba extends AdvancedRobot {
         }
     }
 
-    // called when an enemy is directly in front of the radar
+    /**
+     * Called when an enemy is scanned by the radar.
+     * <p>
+     * Roomba proceeds to run to the enemy.
+     * Radar locks on to the enemy.
+     * Roomba never looses track of the enemy.
+     *
+     * @param e The event containing the scanned robot's details.
+     */
     public void onScannedRobot(ScannedRobotEvent e) {
-        // turn roomba and its gun towards the enemy
         setTurnRight(e.getBearing());
         double gunTurnAngle = getHeading() + e.getBearing() - getGunHeading();
         setTurnGunRight(gunTurnAngle);
-
-        // fire if the enemy is directly looking at the roomba
         double enemyHeadingToRoombaAngle = Math.abs(robocode.util.Utils.normalRelativeAngleDegrees(
                 e.getHeading() - (getHeading() + e.getBearing() + 180)));
         int maxAngleDelta = 10;
@@ -47,22 +64,24 @@ public class Roomba extends AdvancedRobot {
                 setFire(Math.max(0.1, getEnergy() / 2));
         }
 
-        // go to enemy
         setAhead(500);
 
         if (shouldFire(e.getBearing(), e.getDistance()))
             setFire(Rules.MAX_BULLET_POWER);
 
-        // switching the direction the radar was turning
-        // will make the roomba never lose track of the enemy
         radarTurnDirection = -radarTurnDirection;
         setTurnRadarRight(radarTurnDirection);
 
         execute();
     }
 
-    // roomba should only fire if the gun is pointing
-    // at an enemy and the enemy is very close
+    /**
+     * Determines if the robot should fire based on the enemy's distance and bearing.
+     *
+     * @param eventBearing The bearing of the enemy.
+     * @param eventDistance The distance to the enemy.
+     * @return True if the robot should fire, false otherwise.
+     */
     private boolean shouldFire(double eventBearing, double eventDistance) {
         int maxAngleDelta = 10;
         int maxDistance = 80;
@@ -71,8 +90,12 @@ public class Roomba extends AdvancedRobot {
         return gunAngleToEnemy < maxAngleDelta && eventDistance < maxDistance;
     }
 
-    // roomba dance upon winning
-    // just wiggles left and right
+    /**
+     * Executes a dance upon winning a match.
+     * The robot wiggles left and right.
+     *
+     * @param e The event signaling the win.
+     */
     public void onWin(WinEvent e) {
         for (int i = 0; i < 50; i++) {
             ahead(0);
