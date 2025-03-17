@@ -7,7 +7,7 @@ import java.awt.*;
  * Roomba! - Happily wipes every enemy.
  * <p>
  * This robot continuously scans for opponents, locks onto targets, and fires at
- * maximum power when it is certain it will hit.
+ * when it is certain it will hit.
  * Upon winning a round, it performs a celebratory dance.
  * </p>
  *
@@ -15,11 +15,6 @@ import java.awt.*;
  * @author Ricardo Figueiredo
  */
 public class Roomba extends AdvancedRobot {
-    /**
-     * Direction in which the radar is turning.
-     * 1 for right, -1 for left.
-     */
-    private int radarTurnDirection = 1;
 
     /**
      * Time since the last collision with an enemy.
@@ -40,7 +35,7 @@ public class Roomba extends AdvancedRobot {
      * Main execution loop.
      * <p>
      * Sets the robot's colors and continuously rotates the radar 360 degrees
-     * searching for enemies.
+     * searching for enemies. Also controls zigzag mode.
      * </p>
      */
     @Override
@@ -66,86 +61,79 @@ public class Roomba extends AdvancedRobot {
     /**
      * Called when the robot's radar scans another robot.
      * <p>
-     * This method adjusts the robot's heading to face the enemy while aligning the
-     * gun accordingly.
+     * This method adjusts the robot's alignment of the gun accordingly.
      * It calculates the optimal firing angle relative to the enemy's position and
-     * fires if conditions are met.
+     * fires if conditions are met. Shooting power taking distance in consideration.
      * </p>
      *
      * @param e The ScannedRobotEvent containing details about the detected enemy.
      */
     @Override
     public void onScannedRobot(ScannedRobotEvent e) {
-        setTurnRight(e.getBearing());
-        double gunTurnAngle = getHeading() + e.getBearing() - getGunHeading();
-        setTurnGunRight(gunTurnAngle);
-        double enemyHeadingToRoombaAngle = Math.abs(robocode.util.Utils.normalRelativeAngleDegrees(
-                e.getHeading() - (getHeading() + e.getBearing() + 180)));
-        int maxAngleDelta = 10;
-        if (enemyHeadingToRoombaAngle < maxAngleDelta) {
-            if (getEnergy() >= 2 * Rules.MAX_BULLET_POWER)
-                setFire(Rules.MAX_BULLET_POWER);
-            else
-                setFire(Math.max(0.1, getEnergy() / 2));
+        double enemyDistance = e.getDistance();
+        double bulletPower;
+
+        if (enemyDistance < 100) {
+            bulletPower = Rules.MAX_BULLET_POWER;
+        }
+        else if (enemyDistance < 500) {
+            bulletPower = 2.0;
+        }
+        else {
+            bulletPower = 1.0;
         }
 
-        setAhead(500);
+        double predictedX = getX() + enemyDistance * Math.sin(getHeadingRadians() + e.getBearingRadians());
+        double predictedY = getY() + enemyDistance * Math.cos(getHeadingRadians() + e.getBearingRadians());
+        double aimAngle = Math.toDegrees(Math.atan2(predictedX - getX(), predictedY - getY()));
+        double radarAdjustment = robocode.util.Utils.normalRelativeAngleDegrees(getHeading() + e.getBearing() - getRadarHeading());
+        double gunAdjustment = robocode.util.Utils.normalRelativeAngleDegrees(aimAngle - getGunHeading());
 
-        if (shouldFire(e.getBearing(), e.getDistance()))
-            setFire(Rules.MAX_BULLET_POWER);
+        setTurnRadarRight(radarAdjustment);
+        setTurnGunRight(gunAdjustment);
 
-        radarTurnDirection = -radarTurnDirection;
-        setTurnRadarRight(radarTurnDirection);
+        if (Math.abs(gunAdjustment) < 5) {
+            setFire(bulletPower);
+        }
+
+        setAhead(50);
+        setTurnRight(20);
+
 
         execute();
     }
 
     /**
      * Called when the robot collides with another robot.
-     * Updates the last collision time.
+     * <p>
+     * Updates the last collision time. In addition, Handles shooting and mechanics.
+     * </p>
      *
      * @param e The collision event.
      */
     public void onHitRobot(HitRobotEvent e) {
         lastEnemyCollisionTime = System.currentTimeMillis();
-        zigzagMode = false; // Reset zigzag mode on collision
+        zigzagMode = false;
+        setTurnRight(e.getBearing());
+        double gunTurnAngle = getHeading() + e.getBearing() - getGunHeading();
+        setTurnGunRight(gunTurnAngle);
+        setFire(Math.max(0.1, getEnergy() / 2));
     }
 
     /**
-     * Determines whether the robot should fire based on the enemy's position.
+     * Starts the opposite direction movement
      * <p>
-     * The robot checks if the gun is well-aligned with the enemy and if the enemy
-     * is within a close range.
+     * Changes direction to make it less predictable.
      * </p>
-     *
-     * @param eventBearing  the bearing from the robot to the enemy.
-     * @param eventDistance the distance from the robot to the enemy.
-     * @return true if conditions are favorable for firing; false otherwise.
-     */
-    private boolean shouldFire(double eventBearing, double eventDistance) {
-        int maxAngleDelta = 10;
-        int maxDistance = 80;
-        double gunAngleToEnemy = Math.abs(robocode.util.Utils
-                .normalRelativeAngleDegrees((getHeading() + eventBearing) - getGunHeading()));
-        return gunAngleToEnemy < maxAngleDelta && eventDistance < maxDistance;
-    }
-
-    /**
-     * Starts the zigzag movement and fires with power 1.2.
      */
     private void startZigzagMode() {
-        zigzagMode = true;
 
-        while (zigzagMode) {
-            setTurnRight(45);
-            setAhead(100);
-            execute();
-            setTurnLeft(45);
-            setAhead(100);
-            execute();
+        setTurnLeft(30);
+        setAhead(150);
 
-            setFire(1.2);
-        }
+        execute();
+
+        zigzagMode = false;
     }
 
     /**
